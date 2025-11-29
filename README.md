@@ -16,8 +16,8 @@ UniFoods is a full-stack web application designed for students, teachers, and ad
 
 ## Folder Structure
 
-UniFoods/
-├─ frontend/ # React + Vite frontend
+UniFoods/ </br>
+├─ frontend/ # React + Vite frontend </br>
 └─ backend/ # Node + Express backend
 
 ## Getting Started
