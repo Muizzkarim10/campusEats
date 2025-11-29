@@ -34,3 +34,7 @@ cd backend
 npm install
 # Create .env file with your DB credentials and JWT secret
 node server.js
+
+cd frontend
+npm install
+npm run dev
