@@ -1,16 +1,68 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
-import LoginImage from "../assets/login.jpg";
+import { Link, useNavigate } from "react-router-dom";
+import { Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
+import { login } from "../services/authService";
+import LoginImage from "../assets/signup.jpg";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [regNo, setRegNo] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login:", { email, password });
+
+    // Check for admin credentials first
+    if (regNo === "admin@campuseats.com" && password === "admin123") {
+      // Admin login
+      const adminUser = {
+        name: "Admin",
+        email: regNo,
+        role: "admin",
+        balance: 0, // Admins don't need balance
+      };
+      localStorage.setItem("user", JSON.stringify(adminUser));
+      localStorage.setItem("token", "admin-token"); // Dummy token for admin
+      navigate("/admin-dashboard");
+      return;
+    }
+
+    // Regular user login
+    try {
+      const data = await login({ regNo, password });
+
+      if (data.token) {
+        // Store token
+        localStorage.setItem("token", data.token);
+
+        // Store user data with role
+        if (data.user) {
+          const userWithRole = { ...data.user, role: "user" };
+          localStorage.setItem("user", JSON.stringify(userWithRole));
+        }
+
+        // Debug: Check what's stored
+        console.log("Stored user data:", localStorage.getItem("user"));
+
+        navigate("/home");
+
+        // Optional: Force reload to update navbar immediately
+        window.location.reload();
+      } else {
+        setStatus({
+          type: "error",
+          message: data.message || "Invalid credentials.",
+        });
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setStatus({
+        type: "error",
+        message: "Server error. Please try again.",
+      });
+    }
   };
 
   return (
@@ -25,15 +77,14 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-field">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="regNo">Registration Number</label>
               <div className="input-group">
-                <Mail className="field-icon" size={20} />
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  id="regNo"
+                  type="text"
+                  value={regNo}
+                  onChange={(e) => setRegNo(e.target.value)}
+                  placeholder="Enter your registration number (e.g. SP24-BCS-000)"
                   required
                 />
               </div>
@@ -72,9 +123,24 @@ const Login = () => {
             </button>
           </form>
 
+          {status.message && (
+            <p
+              className={`status-message ${
+                status.type === "success" ? "success" : "error"
+              }`}
+            >
+              {status.message}
+            </p>
+          )}
+
           <div className="signup-prompt">
             <p>
               Don't have an account? <Link to="/signup">Sign up</Link>
+            </p>
+            <p>
+              <Link to="/admin-login" className="admin-login-link">
+                Admin Login
+              </Link>
             </p>
           </div>
         </div>
@@ -82,11 +148,7 @@ const Login = () => {
 
       <div className="auth-right">
         <div className="auth-decoration">
-          <img
-            src={LoginImage}
-            alt="CampusEats Food"
-            className="auth-image"
-          />
+          <img src={LoginImage} alt="CampusEats Food" className="auth-image" />
           <div className="auth-overlay">
             <h2>Your Campus Cravings</h2>
             <p>Delivered Fresh & Fast</p>
