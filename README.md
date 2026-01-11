@@ -1,4 +1,4 @@
-# UniFoods 🍽️
+# CampusEats 🍽️
 
 UniFoods is a full-stack web application designed for students, teachers, and admins to order and manage food on campus.
 
