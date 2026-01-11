@@ -1,18 +1,8 @@
 import React from "react";
-import homeBg from "../assets/special.jpeg";
 
 const Home = () => {
   return (
-    <section
-      className="home"
-      id="home"
-      style={{
-        backgroundImage: `url(${homeBg})`,
-        backgroundSize: "center", // makes image cover whole section
-        backgroundPosition: "center", // centers the image
-        backgroundRepeat: "no-repeat", // prevents repeating
-      }}
-    >
+    <section className="home" id="home">
       <div className="content">
         <h3>
           Your <span>Campus Cravings</span> <br /> Delivered{" "}
@@ -23,7 +13,7 @@ const Home = () => {
           right at their university spots. Fast, fresh, and hassle-free!
         </p>
         <a href="#menu" className="btn">
-          Get Yours Now
+          <s>Get yours now</s>
         </a>
       </div>
     </section>

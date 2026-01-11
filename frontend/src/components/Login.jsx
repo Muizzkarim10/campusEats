@@ -1,37 +1,48 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Lock, User as UserIcon, Eye, EyeOff } from "lucide-react";
+import { Lock, User, Eye, EyeOff, Mail } from "lucide-react";
 import { login } from "../services/authService";
 import LoginImage from "../assets/signup.jpg";
 
 const Login = () => {
-  const [regNo, setRegNo] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState({ type: "", message: "" });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setStatus({ type: "", message: "" });
 
-    // Check for admin credentials first
-    if (regNo === "admin@campuseats.com" && password === "admin123") {
-      // Admin login
-      const adminUser = {
-        name: "Admin",
-        email: regNo,
-        role: "admin",
-        balance: 0, // Admins don't need balance
-      };
-      localStorage.setItem("user", JSON.stringify(adminUser));
-      localStorage.setItem("token", "admin-token"); // Dummy token for admin
-      navigate("/admin-dashboard");
-      return;
-    }
-
-    // Regular user login
     try {
-      const data = await login({ regNo, password });
+      // Check for admin credentials first
+      if (identifier === "admin@campuseats.com" && password === "admin123") {
+        // Admin login
+        const adminUser = {
+          name: "Admin",
+          email: identifier,
+          role: "admin",
+          balance: 0,
+        };
+        localStorage.setItem("user", JSON.stringify(adminUser));
+        localStorage.setItem("token", "admin-token");
+        
+        setStatus({
+          type: "success",
+          message: "Admin login successful! Redirecting...",
+        });
+        
+        setTimeout(() => {
+          navigate("/admin-dashboard");
+        }, 500);
+        return;
+      }
+
+      // Regular user login - try with API
+      const data = await login({ regNo: identifier, password });
 
       if (data.token) {
         // Store token
@@ -43,13 +54,15 @@ const Login = () => {
           localStorage.setItem("user", JSON.stringify(userWithRole));
         }
 
-        // Debug: Check what's stored
-        console.log("Stored user data:", localStorage.getItem("user"));
+        setStatus({
+          type: "success",
+          message: "Login successful! Redirecting...",
+        });
 
-        navigate("/home");
-
-        // Optional: Force reload to update navbar immediately
-        window.location.reload();
+        setTimeout(() => {
+          navigate("/home");
+          window.location.reload();
+        }, 500);
       } else {
         setStatus({
           type: "error",
@@ -60,8 +73,10 @@ const Login = () => {
       console.error("Login error:", error);
       setStatus({
         type: "error",
-        message: "Server error. Please try again.",
+        message: "Invalid credentials. Please check your registration number and password.",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -70,22 +85,27 @@ const Login = () => {
       <div className="auth-left">
         <div className="auth-form-container">
           <div className="auth-avatar">
-            <UserIcon size={50} />
+            <User size={50} />
           </div>
 
           <h1 className="auth-welcome">WELCOME</h1>
+          <p style={{ textAlign: "center", color: "#666", marginBottom: "1.5rem", fontSize: "0.9rem" }}>
+            Sign in to your account
+          </p>
 
-          <form onSubmit={handleSubmit} className="login-form">
+          <div onSubmit={handleSubmit} className="login-form">
             <div className="form-field">
-              <label htmlFor="regNo">Registration Number</label>
+              <label htmlFor="identifier">Registration Number / Email</label>
               <div className="input-group">
+                <Mail className="field-icon" size={20} />
                 <input
-                  id="regNo"
+                  id="identifier"
                   type="text"
-                  value={regNo}
-                  onChange={(e) => setRegNo(e.target.value)}
-                  placeholder="Enter your registration number (e.g. SP24-BCS-000)"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="SP24-BCS-000 or Admin"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -101,11 +121,13 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="password-toggle"
+                  disabled={isLoading}
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -113,15 +135,15 @@ const Login = () => {
             </div>
 
             <div className="form-footer">
-              <a href="#" className="forgot-link">
+              <a href="/reset-password" className="forgot-link">
                 Forgot Password?
               </a>
             </div>
 
-            <button type="submit" className="login-btn">
-              LOGIN
+            <button onClick={handleSubmit} className="login-btn" disabled={isLoading}>
+              {isLoading ? "LOGGING IN..." : "LOGIN"}
             </button>
-          </form>
+          </div>
 
           {status.message && (
             <p
@@ -136,11 +158,6 @@ const Login = () => {
           <div className="signup-prompt">
             <p>
               Don't have an account? <Link to="/signup">Sign up</Link>
-            </p>
-            <p>
-              <Link to="/admin-login" className="admin-login-link">
-                Admin Login
-              </Link>
             </p>
           </div>
         </div>

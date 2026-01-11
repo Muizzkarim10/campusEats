@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ShoppingCart, Heart, Eye, Star } from "lucide-react";
+import { useCart } from "./cartContext"; // Import Cart Context
 import coffee from "../assets/coffee.jpg";
 import drinks from "../assets/drinks.jpg";
 import meal from "../assets/meal.jpg";
@@ -7,18 +8,37 @@ import snack from "../assets/snack.jpg";
 import box from "../assets/box.jpg";
 import smoothie from "../assets/smoothie.jpg";
 
-const productData = [
-  { img: coffee, name: "Fresh Coffee", price: 4.99 },
-  { img: drinks, name: "Energy Drink", price: 3.99 },
-  { img: smoothie, name: "Smoothie Bowl", price: 7.99 },
-  { img: box, name: "Breakfast Box", price: 9.99 },
-  { img: snack, name: "Snack Pack", price: 5.99 },
-  { img: meal, name: "Meal Combo", price: 14.99 },
-  { img: meal, name: "Meal Combo", price: 14.99 },
-  { img: meal, name: "Meal Combo", price: 14.99 },
+const baseProductData = [
+  { img: coffee, name: "Fresh Coffee", price: 200.99 },
+  { img: drinks, name: "Energy Drink", price: 300.99 },
+  { img: smoothie, name: "Smoothie Bowl", price: 700.99 },
+  { img: box, name: "Breakfast Box", price: 600.99 },
+  { img: snack, name: "Snack Pack", price: 200.99 },
+  { img: meal, name: "Meal Combo", price: 900.99 },
 ];
 
 const Product = () => {
+  const { addToCart } = useCart(); // get addToCart function
+  const [products, setProducts] = useState(baseProductData);
+
+  useEffect(() => {
+    const adminItems =
+      JSON.parse(localStorage.getItem("adminItems")) || [];
+    const extraProducts = adminItems
+      .filter((i) => i.type === "product")
+      .map((i) => ({
+        img: i.imageUrl || coffee, // fallback
+        name: i.name,
+        price: i.price,
+      }));
+    setProducts([...baseProductData, ...extraProducts]);
+  }, []);
+
+  const handleAddToCart = (item) => {
+    addToCart(item);
+    // Removed alert - cart will open automatically
+  };
+
   return (
     <section className="products" id="products">
       <h1 className="heading">
@@ -26,10 +46,10 @@ const Product = () => {
       </h1>
 
       <div className="box-container">
-        {productData.map((item, index) => (
+        {products.map((item, index) => (
           <div className="box" key={index}>
             <div className="icons">
-              <a href="#">
+              <a href="#" onClick={() => handleAddToCart(item)}>
                 <ShoppingCart size={18} />
               </a>
               <a href="#">
@@ -54,7 +74,7 @@ const Product = () => {
                 <Star size={16} fill="none" color="#ffc107" />
               </div>
               <div className="price">
-                ${item.price.toFixed(2)} <span>$20.99</span>
+                Rs {item.price.toFixed(2)} <span>Rs1500.99</span>
               </div>
             </div>
           </div>

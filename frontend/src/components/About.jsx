@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom"; // ✅ React Router ka Link import
 import burger from "../assets/burger-bg.jpg";
 
 const About = () => {
@@ -35,9 +36,11 @@ const About = () => {
             perfect seasoning to timely delivery, CampusEats ensures every
             student enjoys delicious food without the hassle of long queues.
           </p>
-          <a href="#menu" className="btn">
+
+          {/* Link to UniversityDetails.jsx page */}
+          <Link to="/university-details" className="btn">
             Explore More
-          </a>
+          </Link>
         </div>
       </div>
     </section>
